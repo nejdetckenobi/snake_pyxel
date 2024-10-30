@@ -1,7 +1,10 @@
 import pyxel
 from src.scene.base import BaseScene
+from sys import argv
 
 
 class MainScene(BaseScene):
     def draw(self):
-        pyxel.text(0, "Press any arrow key to start", 2)
+        pyxel.cls(0)
+        for i, e in enumerate(argv):
+            pyxel.text(0, i * 8, str(e), 2)
