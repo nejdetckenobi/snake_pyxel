@@ -24,14 +24,12 @@ class PlaygroundScene(BaseScene):
                             SnakePart(start_x, start_y + 1, Direction.UP)]
         self.put_random_food()
 
-    # TODO: Fix calculations to accept block (cell) system
     def _get_random_coords(self):
         x = random.randrange(0, WIDTH_IN_CELL_COUNT)
         y = random.randrange(0, HEIGHT_IN_CELL_COUNT)
 
         return x, y
 
-    # TODO: Fix calculations to accept block (cell) system
     def _get_empty_coords(self):
         is_valid = False
         while not is_valid:
@@ -43,7 +41,6 @@ class PlaygroundScene(BaseScene):
         return x, y
 
 
-    # TODO: Fix calculations to accept block (cell) system
     def _get_next_head_grid(self, x: int, y: int, direction: Direction):
         if direction == Direction.UP:
             result_x = x
@@ -91,22 +88,50 @@ class PlaygroundScene(BaseScene):
                       CELL_SIZE, CELL_SIZE,
                       TRANSPARENT_COLOR)
 
+    def draw_game_over(self):
+        texts = [
+            f"Game Over",
+            f"You scored {self.game.score}",
+            f"Press R to restart",
+        ]
+
+        for index, text in enumerate(texts):
+            pyxel.text(pyxel.width // 2 - 2 * len(text),
+                       pyxel.height // 2 - 6 * (len(texts) - index), text, 2)
+
+    def draw_hunger(self):
+        hunger_percentage = self.hunger_limit / MAX_HUNGER_LIMIT
+        if hunger_percentage > 0:
+            pyxel.rect(0, 0, 
+                       pyxel.width * min(hunger_percentage - 0, 0.25) / 0.25, MARGIN, 
+                       col=4)
+        if hunger_percentage > 0.25:
+            pyxel.rect(pyxel.width - MARGIN, 0,
+                       MARGIN, pyxel.height * min(hunger_percentage - 0.25, 0.25) / 0.25,
+                       col=4)
+        if hunger_percentage > 0.5:
+            pyxel.rect(pyxel.width * (1 - min(hunger_percentage - 0.5, 0.25) / 0.25), pyxel.height - MARGIN,
+                       pyxel.width * min(hunger_percentage - 0.5, 0.25) / 0.25, MARGIN,
+                       col=4)
+        if hunger_percentage > 0.75:
+            pyxel.rect(0, pyxel.height * (1 - min(hunger_percentage - 0.75, 0.25) / 0.25),
+                       MARGIN, pyxel.height * min(hunger_percentage - 0.75, 0.25) / 0.25,
+                       col=4)
+
+    def draw_score(self):
+        pyxel.text(0, 0, f"{self.game.score} ({self.hunger_limit})", 2)
+
     def draw(self):
         super(PlaygroundScene, self).draw()
+        pyxel.cls(1)
         self.draw_foods()
         self.draw_snake()
         self.draw_walls()
+        self.draw_score()
         if self.hunger_limit != 0:
-            pyxel.text(0, 0, f"{self.game.score} ({self.hunger_limit})", 2)
+            self.draw_hunger()
         else:
-            texts = [
-                f"Game Over",
-                f"You scored {self.game.score}",
-            ]
-
-            for index, text in enumerate(texts):
-                pyxel.text(pyxel.width // 2 - 2 * len(text),
-                           pyxel.height // 2 - 6 * (len(texts) - index), text, 2)
+            self.draw_game_over()
 
     def update(self):
         now = time.time()
@@ -138,11 +163,8 @@ class PlaygroundScene(BaseScene):
         except IndexError:
             next_direction = head.direction
 
-        # TODO: Fix calculations to accept block (cell) system
         next_x, next_y, next_direction = self._get_next_head_grid(head.x, head.y, next_direction)
         new_part = SnakePart(next_x, next_y, next_direction)
-        print(new_part)
-        print(self.foods)
         is_eating = False
 
         # Check if there is a food on the way

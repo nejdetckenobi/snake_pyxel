@@ -23,13 +23,16 @@ class Game(object):
 
     def reset(self):
         self.scenes["playground"] = PlaygroundScene(game=self)
+        self.current_scene_name = "playground"
 
     def draw(self):
         self.current_scene.draw()
 
     def update(self):
-        if pyxel.btnp(pyxel.KEY_ESC):
+        if pyxel.btn(pyxel.KEY_ESCAPE):
             pass
+        elif pyxel.btnr(pyxel.KEY_R):
+            self.reset()
         self.current_scene.handle_key()
         self.current_scene.update()
 

@@ -5,5 +5,9 @@ from sys import argv
 
 class MainScene(BaseScene):
     def draw(self):
+        pyxel.cls(1)
         super(MainScene, self).draw()
-        pyxel.text(0, 0, "Press R to start", 2)
+
+    def handle_key(self):
+        if any(pyxel.btnp(key) for key in range(16)):
+            self.game.current_scene_name = 'playground'

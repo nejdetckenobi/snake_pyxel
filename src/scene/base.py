@@ -15,5 +15,4 @@ class BaseScene(ABC):
 
     @abstractmethod
     def draw(self):
-        pyxel.cls(1)
-
+        pass
