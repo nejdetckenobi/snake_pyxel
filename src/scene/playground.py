@@ -99,7 +99,14 @@ class PlaygroundScene(BaseScene):
         if self.hunger_limit != 0:
             pyxel.text(0, 0, f"{self.game.score} ({self.hunger_limit})", 2)
         else:
-            pyxel.text(0, 0, f"You scored {self.game.score}", 2)
+            texts = [
+                f"Game Over",
+                f"You scored {self.game.score}",
+            ]
+
+            for index, text in enumerate(texts):
+                pyxel.text(pyxel.width // 2 - 2 * len(text),
+                           pyxel.height // 2 - 6 * (len(texts) - index), text, 2)
 
     def update(self):
         now = time.time()
@@ -176,4 +183,4 @@ class PlaygroundScene(BaseScene):
             self.hunger_limit = min(self.hunger_limit + FOOD_EFFECT_AMOUNT, MAX_HUNGER_LIMIT)
         else:
             self.snake_parts.pop()
-            # self.hunger_limit = max(0, self.hunger_limit - 1)
+            self.hunger_limit = max(0, self.hunger_limit - 1)
