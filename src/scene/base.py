@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+import pyxel
+
 
 class BaseScene(ABC):
     def __init__(self, game):
@@ -13,4 +15,5 @@ class BaseScene(ABC):
 
     @abstractmethod
     def draw(self):
-        pass
+        pyxel.cls(1)
+

@@ -4,7 +4,7 @@ import time
 import pyxel
 from src.entity.wall import Wall
 from src.entity.food import Food
-from src.constants import CELL_SIZE, Direction
+from src.constants import CELL_SIZE, FOOD_EFFECT_AMOUNT, HEIGHT_IN_CELL_COUNT, MAX_HUNGER_LIMIT, TICK_PERIOD, TRANSPARENT_COLOR, MARGIN, WIDTH_IN_CELL_COUNT, Direction
 from src.entity.snakepart import SnakePart
 from src.scene.base import BaseScene
 
@@ -15,20 +15,23 @@ class PlaygroundScene(BaseScene):
         self.snake_parts = []
         self.foods = []
         self.walls = []
-        self.snake_parts.append(SnakePart(0, 0, Direction.UP))
-        self.put_random_food()
         self.turns = []
         self.last_tick = time.time()
+        self.hunger_limit = MAX_HUNGER_LIMIT
+        start_x = WIDTH_IN_CELL_COUNT // 2
+        start_y = HEIGHT_IN_CELL_COUNT // 2 
+        self.snake_parts = [SnakePart(start_x, start_y, Direction.UP),
+                            SnakePart(start_x, start_y + 1, Direction.UP)]
+        self.put_random_food()
 
+    # TODO: Fix calculations to accept block (cell) system
     def _get_random_coords(self):
-        x_limit = pyxel.width // CELL_SIZE
-        y_limit = pyxel.height // CELL_SIZE
-
-        x = random.randrange(0, x_limit) * CELL_SIZE
-        y = random.randrange(0, y_limit) * CELL_SIZE
+        x = random.randrange(0, WIDTH_IN_CELL_COUNT)
+        y = random.randrange(0, HEIGHT_IN_CELL_COUNT)
 
         return x, y
 
+    # TODO: Fix calculations to accept block (cell) system
     def _get_empty_coords(self):
         is_valid = False
         while not is_valid:
@@ -40,20 +43,20 @@ class PlaygroundScene(BaseScene):
         return x, y
 
 
-    def _get_next_head_coordinates(self, x: int, y: int, direction: Direction):
+    # TODO: Fix calculations to accept block (cell) system
+    def _get_next_head_grid(self, x: int, y: int, direction: Direction):
         if direction == Direction.UP:
             result_x = x
-            result_y = (y - CELL_SIZE) % pyxel.height
+            result_y = (y - 1) % HEIGHT_IN_CELL_COUNT
         elif direction == Direction.DOWN:
             result_x = x
-            result_y = (y + CELL_SIZE) % pyxel.height
+            result_y = (y + 1) % HEIGHT_IN_CELL_COUNT
         elif direction == Direction.LEFT:
-            result_x = (x - CELL_SIZE) % pyxel.width
+            result_x = (x - 1) % WIDTH_IN_CELL_COUNT
             result_y = y
         elif direction == Direction.RIGHT:
-            result_x = (x + CELL_SIZE) % pyxel.width
+            result_x = (x + 1) % WIDTH_IN_CELL_COUNT
             result_y = y
-        
         return result_x, result_y, direction
 
     def put_food(self, x, y):
@@ -65,38 +68,42 @@ class PlaygroundScene(BaseScene):
 
     def draw_foods(self):
         for food in self.foods:
-            pyxel.blt(food.x, food.y, 
-                      0, 
-                      16, 0,
-                      16, 16,
-                      0)
+            pyxel.blt(food.real_x, food.real_y, 
+                      0,
+                      0, CELL_SIZE,
+                      CELL_SIZE, CELL_SIZE,
+                      TRANSPARENT_COLOR)
 
     def draw_snake(self):
         for part in self.snake_parts:
-            pyxel.blt(part.x, part.y, 
+            pyxel.blt(part.real_x, part.real_y, 
                       0, 
                       0, 0,
-                      16, 16,
-                      0)
+                      CELL_SIZE, CELL_SIZE,
+                      TRANSPARENT_COLOR)
+
 
     def draw_walls(self):
         for wall in self.walls:
-            pyxel.blt(wall.x, wall.y,
+            pyxel.blt(wall.real_x, wall.real_y,
                       0,
-                      32, 0,
-                      16, 16,
-                      0)
+                      0, 2 * CELL_SIZE,
+                      CELL_SIZE, CELL_SIZE,
+                      TRANSPARENT_COLOR)
 
     def draw(self):
-        pyxel.cls(0)
+        super(PlaygroundScene, self).draw()
         self.draw_foods()
         self.draw_snake()
         self.draw_walls()
-        pyxel.text(0, 0, f"{self.game.score}", 2)
+        if self.hunger_limit != 0:
+            pyxel.text(0, 0, f"{self.game.score} ({self.hunger_limit})", 2)
+        else:
+            pyxel.text(0, 0, f"You scored {self.game.score}", 2)
 
     def update(self):
         now = time.time()
-        if now - self.last_tick > 0.05:
+        if now - self.last_tick > TICK_PERIOD:
             self.last_tick = now
             self.tick()
 
@@ -114,8 +121,9 @@ class PlaygroundScene(BaseScene):
             if self.snake_parts[0].direction != Direction.LEFT:
                 self.turns.append(Direction.RIGHT)
 
-
     def tick(self):
+        if self.hunger_limit == 0:
+            return
         head = self.snake_parts[0]
         # Take snake programming into account
         try:
@@ -123,8 +131,11 @@ class PlaygroundScene(BaseScene):
         except IndexError:
             next_direction = head.direction
 
-        next_x, next_y, next_direction = self._get_next_head_coordinates(head.x, head.y, next_direction)
+        # TODO: Fix calculations to accept block (cell) system
+        next_x, next_y, next_direction = self._get_next_head_grid(head.x, head.y, next_direction)
         new_part = SnakePart(next_x, next_y, next_direction)
+        print(new_part)
+        print(self.foods)
         is_eating = False
 
         # Check if there is a food on the way
@@ -148,12 +159,13 @@ class PlaygroundScene(BaseScene):
                 self.walls.append(Wall(dp.x, dp.y))
 
         # Check if there is a wall on the way
-        is_dead = False
+        is_stopped = False
         for wall in self.walls:
             if wall.x == new_part.x and wall.y == new_part.y:
-                is_dead = True
+                is_stopped = True
         
-        if is_dead:
+        if is_stopped:
+            self.hunger_limit = max(0, self.hunger_limit - 1)
             return
 
         self.snake_parts.insert(0, new_part)
@@ -161,6 +173,7 @@ class PlaygroundScene(BaseScene):
             self.put_random_food()
             self.foods.remove(food)
             self.game.score += 1
+            self.hunger_limit = min(self.hunger_limit + FOOD_EFFECT_AMOUNT, MAX_HUNGER_LIMIT)
         else:
             self.snake_parts.pop()
-            
+            # self.hunger_limit = max(0, self.hunger_limit - 1)

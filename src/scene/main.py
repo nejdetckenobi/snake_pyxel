@@ -5,6 +5,5 @@ from sys import argv
 
 class MainScene(BaseScene):
     def draw(self):
-        pyxel.cls(0)
-        for i, e in enumerate(argv):
-            pyxel.text(0, i * 8, str(e), 2)
+        super(MainScene, self).draw()
+        pyxel.text(0, 0, "Press R to start", 2)

@@ -14,7 +14,7 @@ class Game(object):
             "end": EndScene(game=self),
         }
         self.score = 0
-        self.current_scene_name = "main"
+        self.current_scene_name = "playground"
         self.reset()
 
     @property

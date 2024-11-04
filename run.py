@@ -1,11 +1,11 @@
 import pyxel
 
 from src.game import Game
-from src.constants import CELL_SIZE
+from src.constants import CELL_SIZE, HEIGHT_IN_CELL_COUNT, MARGIN, WIDTH_IN_CELL_COUNT
 
 
 if __name__ == '__main__':
-    pyxel.init(8 * CELL_SIZE, 8 * CELL_SIZE)
+    pyxel.init(WIDTH_IN_CELL_COUNT * CELL_SIZE + 2 * MARGIN, HEIGHT_IN_CELL_COUNT * CELL_SIZE + 2 * MARGIN)
     pyxel.load("resources.pyxres")
     pyxel.mouse(True)
     game = Game()
