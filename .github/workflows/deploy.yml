@@ -38,7 +38,7 @@ jobs:
 
     - name: Move HTML and Pyxapp Output to dist
       run: |
-        mv *.html dist/
+        mv snake_pyxel.html dist/index.html
         mv snake_pyxel.pyxapp dist/
 
     - name: Deploy to GitHub Pages
