@@ -24,6 +24,7 @@ class Game(object):
     def reset(self):
         self.scenes["playground"] = PlaygroundScene(game=self)
         self.current_scene_name = "playground"
+        self.score = 0
 
     def draw(self):
         self.current_scene.draw()
