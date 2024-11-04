@@ -1,0 +1,46 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install Pyxel
+      run: pip install pyxel
+
+    - name: Run Pyxel Application
+      run: pyxel package . run.py
+
+    - name: Convert Pyxel App to HTML
+      run: pyxel app2html snake_pyxel.pyxapp
+
+    - name: Create dist directory
+      run: mkdir -p dist
+
+    - name: Move HTML and Pyxapp Output to dist
+      run: |
+        mv *.html dist/
+        mv snake_pyxel.pyxapp dist/
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist
+        force_orphan: true
