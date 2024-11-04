@@ -184,3 +184,4 @@ class PlaygroundScene(BaseScene):
         else:
             self.snake_parts.pop()
             self.hunger_limit = max(0, self.hunger_limit - 1)
+
