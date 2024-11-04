@@ -94,10 +94,17 @@ class PlaygroundScene(BaseScene):
             f"You scored {self.game.score}",
             f"Press R to restart",
         ]
+        rect_width = max(map(len, texts)) * 4 + 4
+        rect_height = len(texts) * 6 + 4
+
+        pyxel.rect((pyxel.width - rect_width) // 2, (pyxel.height - rect_height) // 2,
+                   rect_width, rect_height,
+                   col=0)
 
         for index, text in enumerate(texts):
             pyxel.text(pyxel.width // 2 - 2 * len(text),
-                       pyxel.height // 2 - 6 * (len(texts) - index), text, 2)
+                       pyxel.height // 2 + 2 - 6 * (len(texts) - index - 1), text, 7)
+
 
     def draw_hunger(self):
         hunger_percentage = self.hunger_limit / MAX_HUNGER_LIMIT
@@ -119,7 +126,7 @@ class PlaygroundScene(BaseScene):
                        col=4)
 
     def draw_score(self):
-        pyxel.text(0, 0, f"{self.game.score} ({self.hunger_limit})", 2)
+        pyxel.text(0, 0, f"Score: {self.game.score}", 7)
 
     def draw(self):
         super(PlaygroundScene, self).draw()
@@ -127,11 +134,11 @@ class PlaygroundScene(BaseScene):
         self.draw_foods()
         self.draw_snake()
         self.draw_walls()
-        self.draw_score()
         if self.hunger_limit != 0:
             self.draw_hunger()
         else:
             self.draw_game_over()
+        self.draw_score()
 
     def update(self):
         now = time.time()
