@@ -28,6 +28,8 @@ class Game(object):
         self.current_scene.draw()
 
     def update(self):
+        if pyxel.btnp(pyxel.KEY_ESC):
+            pass
         self.current_scene.handle_key()
         self.current_scene.update()
 
