@@ -5,7 +5,7 @@ from sys import argv
 
 class MainScene(BaseScene):
     def draw(self):
-        pyxel.cls(1)
+        pyxel.cls(8)
         super(MainScene, self).draw()
 
     def handle_key(self):

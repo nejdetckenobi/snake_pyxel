@@ -4,9 +4,49 @@ import time
 import pyxel
 from src.entity.wall import Wall
 from src.entity.food import Food
-from src.constants import CELL_SIZE, FOOD_EFFECT_AMOUNT, HEIGHT_IN_CELL_COUNT, MAX_HUNGER_LIMIT, TICK_PERIOD, TRANSPARENT_COLOR, MARGIN, WIDTH_IN_CELL_COUNT, Direction
+from src.constants import CELL_SIZE, FOOD_EFFECT_AMOUNT, HEIGHT_IN_CELL_COUNT, MAX_HUNGER_LIMIT, TICK_PERIOD, MARGIN, WIDTH_IN_CELL_COUNT, Direction
 from src.entity.snakepart import SnakePart
 from src.scene.base import BaseScene
+
+
+HEAD_ROTATION_MAP = {
+    # head only
+    Direction.RIGHT: (0, 0),
+    Direction.LEFT: (0, 180),
+    Direction.UP: (0, 90),
+    Direction.DOWN: (0, 270),
+}
+
+MID_ROTATION_MAP = {
+    # prev + curr only
+    (Direction.RIGHT, Direction.RIGHT): (3, 0),
+    (Direction.LEFT, Direction.LEFT): (3, 180),
+    (Direction.UP, Direction.UP): (3, 90),
+    (Direction.DOWN, Direction.DOWN): (3, 270),
+    (Direction.RIGHT, Direction.UP): (4, 0),
+    (Direction.RIGHT, Direction.DOWN): (5, 180),
+    (Direction.UP, Direction.RIGHT): (5, 270),
+    (Direction.UP, Direction.LEFT): (4, 90),
+    (Direction.LEFT, Direction.UP): (5, 0),
+    (Direction.LEFT, Direction.DOWN): (4, 180),
+    (Direction.DOWN, Direction.RIGHT): (4, 270),
+    (Direction.DOWN, Direction.LEFT): (5, 90),    
+}
+
+TAIL_ROTATION_MAP = {
+    (Direction.RIGHT, Direction.RIGHT): (6, 0),
+    (Direction.LEFT, Direction.LEFT): (6, 180),
+    (Direction.UP, Direction.UP): (6, 90),
+    (Direction.DOWN, Direction.DOWN): (6, 270),
+    (Direction.RIGHT, Direction.UP): (7, 0),
+    (Direction.RIGHT, Direction.DOWN): (8, 180),
+    (Direction.UP, Direction.RIGHT): (8, 270),
+    (Direction.UP, Direction.LEFT): (7, 90),
+    (Direction.LEFT, Direction.UP): (8, 0),
+    (Direction.LEFT, Direction.DOWN): (7, 180),
+    (Direction.DOWN, Direction.RIGHT): (7, 270),
+    (Direction.DOWN, Direction.LEFT): (8, 90),    
+}
 
 
 class PlaygroundScene(BaseScene):
@@ -21,7 +61,8 @@ class PlaygroundScene(BaseScene):
         start_x = WIDTH_IN_CELL_COUNT // 2
         start_y = HEIGHT_IN_CELL_COUNT // 2 
         self.snake_parts = [SnakePart(start_x, start_y, Direction.UP),
-                            SnakePart(start_x, start_y + 1, Direction.UP)]
+                            SnakePart(start_x, start_y + 1, Direction.UP),
+                            SnakePart(start_x, start_y + 2, Direction.UP)]
         self.put_random_food()
 
     def _get_random_coords(self):
@@ -68,16 +109,38 @@ class PlaygroundScene(BaseScene):
             pyxel.blt(food.real_x, food.real_y, 
                       0,
                       0, CELL_SIZE,
-                      CELL_SIZE, CELL_SIZE,
-                      TRANSPARENT_COLOR)
+                      CELL_SIZE, CELL_SIZE)
 
     def draw_snake(self):
-        for part in self.snake_parts:
-            pyxel.blt(part.real_x, part.real_y, 
-                      0, 
-                      0, 0,
-                      CELL_SIZE, CELL_SIZE,
-                      TRANSPARENT_COLOR)
+        head = self.snake_parts[0]
+        next_head = self.snake_parts[1]
+        head_sprite_data = HEAD_ROTATION_MAP[head.direction]
+        pyxel.blt(head.real_x, head.real_y,
+                  0, 
+                  head_sprite_data[0], 0,
+                  CELL_SIZE, CELL_SIZE, 
+                  rotate=head_sprite_data[1])
+
+        tail = self.snake_parts[-1]
+        prev_tail = self.snake_parts[-2]
+        tail_sprite_data = TAIL_ROTATION_MAP[(prev_tail.direction, tail.direction)]
+        print(self.snake_parts)
+        pyxel.blt(tail.real_x, tail.real_y,
+                  0, 
+                  tail_sprite_data[0] * CELL_SIZE, 0,
+                  CELL_SIZE, CELL_SIZE, 
+                  rotate=tail_sprite_data[1])
+        
+        if len(self.snake_parts) > 2:
+            for index, curr_part in enumerate(self.snake_parts[1:-1], start=1):
+                prev_part = self.snake_parts[index - 1]
+                next_part = self.snake_parts[index + 1]
+                sprite_data = MID_ROTATION_MAP[(prev_part.direction, curr_part.direction)]
+                pyxel.blt(curr_part.real_x, curr_part.real_y, 
+                          0, 
+                          sprite_data[0] * CELL_SIZE, 0,
+                          CELL_SIZE, CELL_SIZE,
+                          rotate=sprite_data[1])
 
 
     def draw_walls(self):
@@ -85,8 +148,7 @@ class PlaygroundScene(BaseScene):
             pyxel.blt(wall.real_x, wall.real_y,
                       0,
                       0, 2 * CELL_SIZE,
-                      CELL_SIZE, CELL_SIZE,
-                      TRANSPARENT_COLOR)
+                      CELL_SIZE, CELL_SIZE)
 
     def draw_game_over(self):
         texts = [
@@ -130,7 +192,7 @@ class PlaygroundScene(BaseScene):
 
     def draw(self):
         super(PlaygroundScene, self).draw()
-        pyxel.cls(1)
+        pyxel.cls(0)
         self.draw_foods()
         self.draw_snake()
         self.draw_walls()
@@ -212,4 +274,4 @@ class PlaygroundScene(BaseScene):
             self.hunger_limit = min(self.hunger_limit + FOOD_EFFECT_AMOUNT, MAX_HUNGER_LIMIT)
         else:
             self.snake_parts.pop()
-            self.hunger_limit = max(0, self.hunger_limit - 1)
+            # self.hunger_limit = max(0, self.hunger_limit - 1)
