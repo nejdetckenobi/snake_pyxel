@@ -124,7 +124,6 @@ class PlaygroundScene(BaseScene):
         tail = self.snake_parts[-1]
         prev_tail = self.snake_parts[-2]
         tail_sprite_data = TAIL_ROTATION_MAP[(prev_tail.direction, tail.direction)]
-        print(self.snake_parts)
         pyxel.blt(tail.real_x, tail.real_y,
                   0, 
                   tail_sprite_data[0] * CELL_SIZE, 0,
