@@ -4,7 +4,14 @@ import time
 import pyxel
 from src.entity.wall import Wall
 from src.entity.food import Food
-from src.constants import CELL_SIZE, FOOD_EFFECT_AMOUNT, HEIGHT_IN_CELL_COUNT, MAX_HUNGER_LIMIT, TICK_PERIOD, MARGIN, WIDTH_IN_CELL_COUNT, Direction
+from src.constants import (CELL_SIZE, 
+                           FOOD_EFFECT_AMOUNT, 
+                           HEIGHT_IN_CELL_COUNT, 
+                           MAX_HUNGER_LIMIT, PANE_HEIGHT, 
+                           PANE_PADDING, 
+                           TICK_PERIOD, 
+                           WIDTH_IN_CELL_COUNT, 
+                           Direction)
 from src.entity.snakepart import SnakePart
 from src.scene.base import BaseScene
 
@@ -106,16 +113,15 @@ class PlaygroundScene(BaseScene):
 
     def draw_foods(self):
         for food in self.foods:
-            pyxel.blt(food.real_x, food.real_y, 
+            pyxel.blt(food.real_x, PANE_HEIGHT + food.real_y, 
                       0,
                       0, CELL_SIZE,
                       CELL_SIZE, CELL_SIZE)
 
     def draw_snake(self):
         head = self.snake_parts[0]
-        next_head = self.snake_parts[1]
         head_sprite_data = HEAD_ROTATION_MAP[head.direction]
-        pyxel.blt(head.real_x, head.real_y,
+        pyxel.blt(head.real_x, PANE_HEIGHT + head.real_y,
                   0, 
                   head_sprite_data[0], 0,
                   CELL_SIZE, CELL_SIZE, 
@@ -124,7 +130,7 @@ class PlaygroundScene(BaseScene):
         tail = self.snake_parts[-1]
         prev_tail = self.snake_parts[-2]
         tail_sprite_data = TAIL_ROTATION_MAP[(prev_tail.direction, tail.direction)]
-        pyxel.blt(tail.real_x, tail.real_y,
+        pyxel.blt(tail.real_x, PANE_HEIGHT + tail.real_y,
                   0, 
                   tail_sprite_data[0] * CELL_SIZE, 0,
                   CELL_SIZE, CELL_SIZE, 
@@ -134,7 +140,7 @@ class PlaygroundScene(BaseScene):
             for index, curr_part in enumerate(self.snake_parts[1:-1], start=1):
                 prev_part = self.snake_parts[index - 1]
                 sprite_data = MID_ROTATION_MAP[(prev_part.direction, curr_part.direction)]
-                pyxel.blt(curr_part.real_x, curr_part.real_y, 
+                pyxel.blt(curr_part.real_x, PANE_HEIGHT + curr_part.real_y, 
                           0, 
                           (sprite_data[0] - (1 if curr_part.is_eating and sprite_data[0] == 3 else 0)) * CELL_SIZE, 0,
                           CELL_SIZE, CELL_SIZE,
@@ -143,7 +149,7 @@ class PlaygroundScene(BaseScene):
 
     def draw_walls(self):
         for wall in self.walls:
-            pyxel.blt(wall.real_x, wall.real_y,
+            pyxel.blt(wall.real_x, PANE_HEIGHT + wall.real_y,
                       0,
                       0, 2 * CELL_SIZE,
                       CELL_SIZE, CELL_SIZE)
@@ -165,28 +171,13 @@ class PlaygroundScene(BaseScene):
             pyxel.text(pyxel.width // 2 - 2 * len(text),
                        pyxel.height // 2 + 2 - 6 * (len(texts) - index - 1), text, 7)
 
-
     def draw_hunger(self):
         hunger_percentage = self.hunger_limit / MAX_HUNGER_LIMIT
-        if hunger_percentage > 0:
-            pyxel.rect(0, 0, 
-                       pyxel.width * min(hunger_percentage - 0, 0.25) / 0.25, MARGIN, 
-                       col=4)
-        if hunger_percentage > 0.25:
-            pyxel.rect(pyxel.width - MARGIN, 0,
-                       MARGIN, pyxel.height * min(hunger_percentage - 0.25, 0.25) / 0.25,
-                       col=4)
-        if hunger_percentage > 0.5:
-            pyxel.rect(pyxel.width * (1 - min(hunger_percentage - 0.5, 0.25) / 0.25), pyxel.height - MARGIN,
-                       pyxel.width * min(hunger_percentage - 0.5, 0.25) / 0.25, MARGIN,
-                       col=4)
-        if hunger_percentage > 0.75:
-            pyxel.rect(0, pyxel.height * (1 - min(hunger_percentage - 0.75, 0.25) / 0.25),
-                       MARGIN, pyxel.height * min(hunger_percentage - 0.75, 0.25) / 0.25,
-                       col=4)
 
-    def draw_score(self):
-        pyxel.text(0, 0, f"Score: {self.game.score}", 7)
+    def draw_pane(self):
+        pyxel.rectb(0, 0, pyxel.width, 10, col=1)
+        pyxel.text(PANE_PADDING, PANE_PADDING, f"Score: {self.game.score}", 1)
+        pyxel.text(pyxel.width // 2 + PANE_PADDING, PANE_PADDING, f"Satiety: {self.hunger_limit}", 1)
 
     def draw(self):
         super(PlaygroundScene, self).draw()
@@ -198,7 +189,7 @@ class PlaygroundScene(BaseScene):
             self.draw_hunger()
         else:
             self.draw_game_over()
-        self.draw_score()
+        self.draw_pane()
 
     def update(self):
         now = time.time()

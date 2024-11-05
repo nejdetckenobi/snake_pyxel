@@ -1,12 +1,12 @@
 import pyxel
 
 from src.game import Game
-from src.constants import CELL_SIZE, HEIGHT_IN_CELL_COUNT, MARGIN, WIDTH_IN_CELL_COUNT
+from src.constants import CELL_SIZE, HEIGHT_IN_CELL_COUNT, PANE_HEIGHT, WIDTH_IN_CELL_COUNT
 
 
 if __name__ == '__main__':
-    pyxel.init(WIDTH_IN_CELL_COUNT * CELL_SIZE + 2 * MARGIN, 
-               HEIGHT_IN_CELL_COUNT * CELL_SIZE + 2 * MARGIN)
+    pyxel.init(WIDTH_IN_CELL_COUNT * CELL_SIZE, 
+               HEIGHT_IN_CELL_COUNT * CELL_SIZE + PANE_HEIGHT)
     pyxel.load("resources.pyxres")
     # pyxel.mouse(True)
     game = Game()
