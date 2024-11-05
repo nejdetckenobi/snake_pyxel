@@ -133,11 +133,10 @@ class PlaygroundScene(BaseScene):
         if len(self.snake_parts) > 2:
             for index, curr_part in enumerate(self.snake_parts[1:-1], start=1):
                 prev_part = self.snake_parts[index - 1]
-                next_part = self.snake_parts[index + 1]
                 sprite_data = MID_ROTATION_MAP[(prev_part.direction, curr_part.direction)]
                 pyxel.blt(curr_part.real_x, curr_part.real_y, 
                           0, 
-                          sprite_data[0] * CELL_SIZE, 0,
+                          (sprite_data[0] - (1 if curr_part.is_eating else 0)) * CELL_SIZE, 0,
                           CELL_SIZE, CELL_SIZE,
                           rotate=sprite_data[1])
 
@@ -233,12 +232,12 @@ class PlaygroundScene(BaseScene):
 
         next_x, next_y, next_direction = self._get_next_head_grid(head.x, head.y, next_direction)
         new_part = SnakePart(next_x, next_y, next_direction)
-        is_eating = False
+        new_part.is_eating = False
 
         # Check if there is a food on the way
         for food in self.foods:
             if food.x == new_part.x and food.y == new_part.y:
-                is_eating = True
+                new_part.is_eating = True
                 break
 
         # Check if there is a snake part on the way
@@ -266,7 +265,7 @@ class PlaygroundScene(BaseScene):
             return
 
         self.snake_parts.insert(0, new_part)
-        if is_eating:
+        if new_part.is_eating:
             self.put_random_food()
             self.foods.remove(food)
             self.game.score += 1
