@@ -136,7 +136,7 @@ class PlaygroundScene(BaseScene):
                 sprite_data = MID_ROTATION_MAP[(prev_part.direction, curr_part.direction)]
                 pyxel.blt(curr_part.real_x, curr_part.real_y, 
                           0, 
-                          (sprite_data[0] - (1 if curr_part.is_eating else 0)) * CELL_SIZE, 0,
+                          (sprite_data[0] - (1 if curr_part.is_eating and sprite_data[0] == 3 else 0)) * CELL_SIZE, 0,
                           CELL_SIZE, CELL_SIZE,
                           rotate=sprite_data[1])
 
@@ -270,6 +270,7 @@ class PlaygroundScene(BaseScene):
             self.foods.remove(food)
             self.game.score += 1
             self.hunger_limit = min(self.hunger_limit + FOOD_EFFECT_AMOUNT, MAX_HUNGER_LIMIT)
+            pyxel.play(0, 0)
         else:
             self.snake_parts.pop()
             # self.hunger_limit = max(0, self.hunger_limit - 1)
