@@ -18,41 +18,41 @@ from src.scene.base import BaseScene
 
 HEAD_ROTATION_MAP = {
     # head only
-    Direction.RIGHT: (0, 0),
-    Direction.LEFT: (0, 180),
-    Direction.UP: (0, 90),
-    Direction.DOWN: (0, 270),
+    Direction.RIGHT: (0,   0),
+    Direction.LEFT : (0, 180),
+    Direction.UP   : (0,  90),
+    Direction.DOWN : (0, 270),
 }
 
 MID_ROTATION_MAP = {
     # prev + curr only
-    (Direction.RIGHT, Direction.RIGHT): (3, 0),
-    (Direction.LEFT, Direction.LEFT): (3, 180),
-    (Direction.UP, Direction.UP): (3, 90),
-    (Direction.DOWN, Direction.DOWN): (3, 270),
-    (Direction.RIGHT, Direction.UP): (4, 0),
-    (Direction.RIGHT, Direction.DOWN): (5, 180),
-    (Direction.UP, Direction.RIGHT): (5, 270),
-    (Direction.UP, Direction.LEFT): (4, 90),
-    (Direction.LEFT, Direction.UP): (5, 0),
-    (Direction.LEFT, Direction.DOWN): (4, 180),
-    (Direction.DOWN, Direction.RIGHT): (4, 270),
-    (Direction.DOWN, Direction.LEFT): (5, 90),    
+    (Direction.RIGHT, Direction.RIGHT): (3,   0),
+    (Direction.LEFT,  Direction.LEFT ): (3, 180),
+    (Direction.UP,    Direction.UP   ): (3,  90),
+    (Direction.DOWN,  Direction.DOWN ): (3, 270),
+    (Direction.RIGHT, Direction.UP   ): (4,   0),
+    (Direction.RIGHT, Direction.DOWN ): (5, 180),
+    (Direction.UP,    Direction.RIGHT): (5, 270),
+    (Direction.UP,    Direction.LEFT ): (4,  90),
+    (Direction.LEFT,  Direction.UP   ): (5,   0),
+    (Direction.LEFT,  Direction.DOWN ): (4, 180),
+    (Direction.DOWN,  Direction.RIGHT): (4, 270),
+    (Direction.DOWN,  Direction.LEFT ): (5,  90),
 }
 
 TAIL_ROTATION_MAP = {
-    (Direction.RIGHT, Direction.RIGHT): (6, 0),
-    (Direction.LEFT, Direction.LEFT): (6, 180),
-    (Direction.UP, Direction.UP): (6, 90),
-    (Direction.DOWN, Direction.DOWN): (6, 270),
-    (Direction.RIGHT, Direction.UP): (7, 0),
-    (Direction.RIGHT, Direction.DOWN): (8, 180),
-    (Direction.UP, Direction.RIGHT): (8, 270),
-    (Direction.UP, Direction.LEFT): (7, 90),
-    (Direction.LEFT, Direction.UP): (8, 0),
-    (Direction.LEFT, Direction.DOWN): (7, 180),
-    (Direction.DOWN, Direction.RIGHT): (7, 270),
-    (Direction.DOWN, Direction.LEFT): (8, 90),    
+    (Direction.RIGHT, Direction.RIGHT): (6,   0),
+    (Direction.LEFT,  Direction.LEFT ): (6, 180),
+    (Direction.UP,    Direction.UP   ): (6,  90),
+    (Direction.DOWN,  Direction.DOWN ): (6, 270),
+    (Direction.RIGHT, Direction.UP   ): (7,   0),
+    (Direction.RIGHT, Direction.DOWN ): (8, 180),
+    (Direction.UP,    Direction.RIGHT): (8, 270),
+    (Direction.UP,    Direction.LEFT ): (7,  90),
+    (Direction.LEFT,  Direction.UP   ): (8,   0),
+    (Direction.LEFT,  Direction.DOWN ): (7, 180),
+    (Direction.DOWN,  Direction.RIGHT): (7, 270),
+    (Direction.DOWN,  Direction.LEFT ): (8,  90),    
 }
 
 
@@ -174,13 +174,12 @@ class PlaygroundScene(BaseScene):
             pyxel.text(pyxel.width // 2 - 2 * len(text),
                        pyxel.height // 2 + 2 - 6 * (len(texts) - index - 1), text, 7)
 
-    def draw_hunger(self):
+    def draw_pane(self):
         hunger_percentage = self.hunger_limit / MAX_HUNGER_LIMIT
 
-    def draw_pane(self):
         pyxel.rectb(0, 0, pyxel.width, 10, col=1)
         pyxel.text(PANE_PADDING, PANE_PADDING, f"Score: {self.game.score}", 1)
-        pyxel.text(pyxel.width // 2 + PANE_PADDING, PANE_PADDING, f"Satiety: {self.hunger_limit}", 1)
+        pyxel.text(pyxel.width // 2 + PANE_PADDING, PANE_PADDING, "Satiety:{:>3}%".format(int(hunger_percentage * 100)), 1)
 
     def draw(self):
         super(PlaygroundScene, self).draw()
@@ -188,11 +187,9 @@ class PlaygroundScene(BaseScene):
         self.draw_foods()
         self.draw_snake()
         self.draw_walls()
-        if self.hunger_limit != 0:
-            self.draw_hunger()
-        else:
-            self.draw_game_over()
         self.draw_pane()
+        if self.hunger_limit == 0:
+            self.draw_game_over()
 
     def update(self):
         now = time.time()
