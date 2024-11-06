@@ -5,7 +5,7 @@ import pyxel
 from src.entity.wall import Wall
 from src.entity.food import Food
 from src.constants import (CELL_SIZE, 
-                           FOOD_EFFECT_AMOUNT, 
+                           FOOD_SATIETY_AMOUNT, FOOD_TAIL_AMOUNT, 
                            HEIGHT_IN_CELL_COUNT, 
                            MAX_HUNGER_LIMIT, PANE_HEIGHT, 
                            PANE_PADDING, 
@@ -64,6 +64,7 @@ class PlaygroundScene(BaseScene):
         self.walls = []
         self.turns = []
         self.last_tick = time.time()
+        self._tail_debt = 0
         self.hunger_limit = MAX_HUNGER_LIMIT
         start_x = WIDTH_IN_CELL_COUNT // 2
         start_y = HEIGHT_IN_CELL_COUNT // 2 
@@ -231,6 +232,14 @@ class PlaygroundScene(BaseScene):
                 new_part.is_eating = True
                 break
 
+        if new_part.is_eating:
+            self.put_random_food()
+            self.foods.remove(food)
+            self.game.score += 1
+            self.hunger_limit = min(self.hunger_limit + FOOD_SATIETY_AMOUNT, MAX_HUNGER_LIMIT)
+            self._tail_debt += FOOD_TAIL_AMOUNT
+            pyxel.play(0, 0)
+
         # Check if there is a snake part on the way
         is_self_bite = False
         for part in self.snake_parts:
@@ -256,12 +265,8 @@ class PlaygroundScene(BaseScene):
             return
 
         self.snake_parts.insert(0, new_part)
-        if new_part.is_eating:
-            self.put_random_food()
-            self.foods.remove(food)
-            self.game.score += 1
-            self.hunger_limit = min(self.hunger_limit + FOOD_EFFECT_AMOUNT, MAX_HUNGER_LIMIT)
-            pyxel.play(0, 0)
-        else:
+        if len(self._tail_debt) == 0:
             self.snake_parts.pop()
             self.hunger_limit = max(0, self.hunger_limit - 1)
+        else:
+            self._tail_debt -= 1
