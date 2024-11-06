@@ -10,8 +10,8 @@ HEIGHT_IN_CELL_COUNT = 16
 TRANSPARENT_COLOR = 0
 
 MAX_HUNGER_LIMIT = 100
-FOOD_SATIETY_AMOUNT = 30
-FOOD_TAIL_AMOUNT = 2
+INITIAL_FOOD_SATIETY_AMOUNT = 100
+INITIAL_FOOD_TAIL_AMOUNT = 2
 
 
 class GameState(IntEnum):
@@ -27,3 +27,8 @@ class Direction(IntEnum):
     DOWN = 1
     LEFT = 2
     UP = 3
+
+
+class FoodType(IntEnum):
+    REGULAR = 0
+    DEAL = 1
