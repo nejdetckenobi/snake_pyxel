@@ -198,6 +198,19 @@ class PlaygroundScene(BaseScene):
             self.tick()
 
     def handle_key(self):
+        # if pyxel.btnp(key=pyxel.KEY_UP):
+        #     if self.snake_parts[0].direction != Direction.DOWN:
+        #         self.turns.append(Direction.UP)
+        # elif pyxel.btnp(key=pyxel.KEY_DOWN):
+        #     if self.snake_parts[0].direction != Direction.UP:
+        #         self.turns.append(Direction.DOWN)
+        # elif pyxel.btnp(key=pyxel.KEY_LEFT):
+        #     if self.snake_parts[0].direction != Direction.RIGHT:
+        #         self.turns.append(Direction.LEFT)
+        if pyxel.btnp(key=pyxel.GAMEPAD1_AXIS_LEFTX):
+            if self.snake_parts[0].direction != Direction.LEFT:
+                self.turns.append(Direction.RIGHT)
+
         if pyxel.btnp(key=pyxel.KEY_UP):
             if self.snake_parts[0].direction != Direction.DOWN:
                 self.turns.append(Direction.UP)
