@@ -127,7 +127,7 @@ class PlaygroundScene(BaseScene):
         pyxel.blt(head.real_x, PANE_HEIGHT + head.real_y,
                   0, 
                   head_sprite_data[0], 0,
-                  CELL_SIZE, CELL_SIZE, 
+                  CELL_SIZE, (-1 if head.direction == Direction.LEFT else 1) * CELL_SIZE, 
                   rotate=head_sprite_data[1])
 
         tail = self.snake_parts[-1]
