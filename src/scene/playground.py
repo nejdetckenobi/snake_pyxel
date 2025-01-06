@@ -3,7 +3,7 @@ import time
 
 import pyxel
 from src.entity.wall import Wall
-from src.entity.food import Food
+from src.entity.food import RegularFood
 from src.constants import (CELL_SIZE, 
                            INITIAL_FOOD_SATIETY_AMOUNT, INITIAL_FOOD_TAIL_AMOUNT, 
                            HEIGHT_IN_CELL_COUNT, 
@@ -108,7 +108,7 @@ class PlaygroundScene(BaseScene):
         return result_x, result_y, direction
 
     def put_food(self, x, y):
-        self.foods.append(Food(x, y))
+        self.foods.append(RegularFood(x, y))
 
     def put_random_food(self):
         food_coords = self._get_empty_coords()
