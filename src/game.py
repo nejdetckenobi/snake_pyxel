@@ -1,4 +1,6 @@
 import pyxel
+from src.scene.pause import PauseScene
+from src.scene.market import MarketScene
 from src.scene.base import BaseScene
 from src.scene.end import EndScene
 from src.scene.main import MainScene
@@ -10,8 +12,10 @@ class Game(object):
         super(Game, self).__init__()
         self.scenes = {
             "playground": PlaygroundScene(game=self),
+            "market": MarketScene(game=self),
             "main": MainScene(game=self),
             "end": EndScene(game=self),
+            "pause": PauseScene(game=self),
         }
         self.score = 0
         self.current_scene_name = "playground"
