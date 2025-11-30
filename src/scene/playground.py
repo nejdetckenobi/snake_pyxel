@@ -302,7 +302,7 @@ class PlaygroundScene(BaseScene):
         if new_part.is_eating:
             self.put_random_food()
             self.foods.remove(food)
-            self.game.score += 1
+            self.game.score += max(1, len(self.walls))
             self.hunger_limit = min(
                 self.hunger_limit + self.food_satiety_amount, MAX_HUNGER_LIMIT
             )
