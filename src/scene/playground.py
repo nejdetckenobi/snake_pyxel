@@ -2,7 +2,15 @@ import random
 import time
 
 import pyxel
-from src.events import FoodEat, GameOver, Reset, SceneChange, ScoreChange, SelfBite
+from src.events import (
+    FoodEat,
+    GameOver,
+    GameStart,
+    Reset,
+    SceneChange,
+    ScoreChange,
+    SelfBite,
+)
 from src.entity.wall import Wall
 from src.entity.food import RegularFood
 from src.constants import (
@@ -66,11 +74,14 @@ class PlaygroundScene(BaseScene):
         self.foods = []
         self.walls = []
         self.turns = []
+        self.snake_parts = []
+        self.hunger_limit = 0
         super().__init__(event_bus)
         self.event_bus.register(FoodEat, self.on_food_eat)
         self.event_bus.register(ScoreChange, self.on_score_change)
         self.event_bus.register(SelfBite, self.on_self_bite)
         self.event_bus.register(Reset, self.on_reset)
+        self.event_bus.register(GameStart, self.on_game_start)
 
     def _get_random_coords(self):
         x = random.randrange(0, WIDTH_IN_CELL_COUNT)
@@ -263,6 +274,10 @@ class PlaygroundScene(BaseScene):
 
     def on_reset(self, event: Reset):
         self._reset()
+
+    def on_game_start(self, event: GameStart):
+        self._reset()
+        self.snake_parts[0].direction = event.initial_direction
 
     def _reset(self):
         self.snake_parts = []

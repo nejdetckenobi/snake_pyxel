@@ -1,6 +1,7 @@
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
+from src.constants import Direction
 from src.entity.food import BaseFood
 
 
@@ -29,7 +30,6 @@ class EventBus:
 @dataclass
 class SceneChange(BaseEvent):
     screen_name: str
-    extra: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -56,3 +56,8 @@ class GameOver(BaseEvent):
 @dataclass
 class Reset(BaseEvent):
     pass
+
+
+@dataclass
+class GameStart(BaseEvent):
+    initial_direction: Direction
