@@ -1,4 +1,5 @@
 import pyxel
+from src.events import SceneChange
 from src.scene.base import BaseScene
 
 
@@ -11,4 +12,4 @@ class MarketScene(BaseScene):
 
     def handle_key(self):
         if pyxel.btnp(pyxel.KEY_RETURN):
-            self.game.current_scene_name = "playground"
+            self.event_bus.emit(SceneChange(screen_name="playground"))

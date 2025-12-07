@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 
-import pyxel
+from src.events import EventBus
 
 
 class BaseScene(ABC):
-    def __init__(self, game):
-        self.game = game
+    def __init__(self, event_bus: EventBus):
+        self.event_bus = event_bus
 
     def update(self):
         pass

@@ -2,6 +2,7 @@ import random
 import time
 
 import pyxel
+from src.events import FoodEat, GameOver, Reset, SceneChange, ScoreChange, SelfBite
 from src.entity.wall import Wall
 from src.entity.food import RegularFood
 from src.constants import (
@@ -61,25 +62,15 @@ TAIL_ROTATION_MAP = {
 
 
 class PlaygroundScene(BaseScene):
-    def __init__(self, game):
-        super().__init__(game)
-        self.snake_parts = []
+    def __init__(self, event_bus):
         self.foods = []
         self.walls = []
         self.turns = []
-        self.last_tick = time.time()
-        self._tail_debt = 0
-        self.hunger_limit = MAX_HUNGER_LIMIT
-        self.food_tail_amount = INITIAL_FOOD_TAIL_AMOUNT
-        self.food_satiety_amount = INITIAL_FOOD_SATIETY_AMOUNT
-        start_x = WIDTH_IN_CELL_COUNT // 2
-        start_y = HEIGHT_IN_CELL_COUNT // 2
-        self.snake_parts = [
-            SnakePart(start_x, start_y, Direction.UP),
-            SnakePart(start_x, start_y + 1, Direction.UP),
-            SnakePart(start_x, start_y + 2, Direction.UP),
-        ]
-        self.put_random_food()
+        super().__init__(event_bus)
+        self.event_bus.register(FoodEat, self.on_food_eat)
+        self.event_bus.register(ScoreChange, self.on_score_change)
+        self.event_bus.register(SelfBite, self.on_self_bite)
+        self.event_bus.register(Reset, self.on_reset)
 
     def _get_random_coords(self):
         x = random.randrange(0, WIDTH_IN_CELL_COUNT)
@@ -171,7 +162,7 @@ class PlaygroundScene(BaseScene):
                     0,
                     (
                         sprite_data[0]
-                        - (1 if curr_part.is_eating and sprite_data[0] == 3 else 0)
+                        - (1 if curr_part.have_food and sprite_data[0] == 3 else 0)
                     )
                     * CELL_SIZE,
                     0,
@@ -192,36 +183,11 @@ class PlaygroundScene(BaseScene):
                 CELL_SIZE,
             )
 
-    def draw_game_over(self):
-        texts = [
-            f"Game Over",
-            f"You scored {self.game.score}",
-            f"Press R to restart",
-        ]
-        rect_width = max(map(len, texts)) * 4 + 4
-        rect_height = len(texts) * 6 + 4
-
-        pyxel.rect(
-            (pyxel.width - rect_width) // 2,
-            (pyxel.height - rect_height) // 2,
-            rect_width,
-            rect_height,
-            col=0,
-        )
-
-        for index, text in enumerate(texts):
-            pyxel.text(
-                pyxel.width // 2 - 2 * len(text),
-                pyxel.height // 2 + 2 - 6 * (len(texts) - index - 1),
-                text,
-                7,
-            )
-
     def draw_pane(self):
         hunger_percentage = self.hunger_limit / MAX_HUNGER_LIMIT
 
         pyxel.rectb(0, 0, pyxel.width, 10, col=1)
-        pyxel.text(PANE_PADDING, PANE_PADDING, f"Score: {self.game.score}", 1)
+        pyxel.text(PANE_PADDING, PANE_PADDING, f"Score: {self._score}", 1)
         pyxel.text(
             pyxel.width // 2 + PANE_PADDING,
             PANE_PADDING,
@@ -236,8 +202,6 @@ class PlaygroundScene(BaseScene):
         self.draw_snake()
         self.draw_walls()
         self.draw_pane()
-        if self.hunger_limit == 0:
-            self.draw_game_over()
 
     def update(self):
         now = time.time()
@@ -272,13 +236,57 @@ class PlaygroundScene(BaseScene):
             if self.snake_parts[0].direction != Direction.LEFT:
                 self.turns.append(Direction.RIGHT)
 
-        if pyxel.btnp(key=pyxel.KEY_RETURN):
-            self.game.current_scene_name = "market"
         if pyxel.btnp(key=pyxel.KEY_P):
-            self.game.current_scene_name = "pause"
+            self.event_bus.emit(SceneChange(screen_name="pause"))
+
+    def on_score_change(self, event: ScoreChange):
+        self._score = event.new_score
+
+    def on_food_eat(self, event: FoodEat):
+        self.put_random_food()
+        self.foods.remove(event.food)
+        self.snake_parts[-1].have_food = True
+        self.hunger_limit = min(
+            self.hunger_limit + self.food_satiety_amount, MAX_HUNGER_LIMIT
+        )
+        self._tail_debt += self.food_tail_amount
+        pyxel.play(0, 0)
+
+    def on_self_bite(self, event: SelfBite):
+        alive_parts, dead_parts = (
+            self.snake_parts[: event.snake_part_index],
+            self.snake_parts[event.snake_part_index + 1 :],
+        )
+        self.snake_parts = alive_parts
+        for dp in dead_parts:
+            self.walls.append(Wall(dp.x, dp.y))
+
+    def on_reset(self, event: Reset):
+        self._reset()
+
+    def _reset(self):
+        self.snake_parts = []
+        self.foods = []
+        self.walls = []
+        self.turns = []
+        self.last_tick = time.time()
+        self._tail_debt = 0
+        self.hunger_limit = MAX_HUNGER_LIMIT
+        self.food_tail_amount = INITIAL_FOOD_TAIL_AMOUNT
+        self.food_satiety_amount = INITIAL_FOOD_SATIETY_AMOUNT
+        self._score = 0
+        start_x = WIDTH_IN_CELL_COUNT // 2
+        start_y = HEIGHT_IN_CELL_COUNT // 2
+        self.snake_parts = [
+            SnakePart(start_x, start_y, Direction.UP),
+            SnakePart(start_x, start_y + 1, Direction.UP),
+            SnakePart(start_x, start_y + 2, Direction.UP),
+        ]
+        self.put_random_food()
 
     def tick(self):
         if self.hunger_limit == 0:
+            self.event_bus.emit(GameOver())
             return
         head = self.snake_parts[0]
         # Take snake programming into account
@@ -291,40 +299,28 @@ class PlaygroundScene(BaseScene):
             head.x, head.y, next_direction
         )
         new_part = SnakePart(next_x, next_y, next_direction)
-        new_part.is_eating = False
 
         # Check if there is a food on the way
         for food in self.foods:
             if food.x == new_part.x and food.y == new_part.y:
-                new_part.is_eating = True
+                print(max(1, len(self.walls)))
+                self.event_bus.emit(
+                    FoodEat(
+                        value=max(1, len(self.walls)),
+                        food=food,
+                    )
+                )
                 break
-
-        if new_part.is_eating:
-            self.put_random_food()
-            self.foods.remove(food)
-            self.game.score += max(1, len(self.walls))
-            self.hunger_limit = min(
-                self.hunger_limit + self.food_satiety_amount, MAX_HUNGER_LIMIT
-            )
-            self._tail_debt += self.food_tail_amount
-            pyxel.play(0, 0)
 
         # Check if there is a snake part on the way
-        is_self_bite = False
         for part in self.snake_parts:
             if part.x == new_part.x and part.y == new_part.y:
-                is_self_bite = True
+                self.event_bus.emit(
+                    SelfBite(
+                        snake_part_index=self.snake_parts.index(part),
+                    )
+                )
                 break
-
-        if is_self_bite:
-            part_index = self.snake_parts.index(part)
-            alive_parts, dead_parts = (
-                self.snake_parts[:part_index],
-                self.snake_parts[part_index + 1 :],
-            )
-            self.snake_parts = alive_parts
-            for dp in dead_parts:
-                self.walls.append(Wall(dp.x, dp.y))
 
         # Check if there is a wall on the way
         is_stopped = False
